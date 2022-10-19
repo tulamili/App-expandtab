@@ -7,7 +7,7 @@ use 5.014 ;
 use strict ; 
 use warnings ; # also confirmed on 5.011 5.014 5.018  
 use FindBin qw [ $Script ] ; 
-use Getopt::Std ; getopts 'R:b:c:i:rs:x' => \my %o ;
+use Getopt::Std ; getopts 'C:R:b:c:i:rs:x' => \my %o ;
 use Term::ANSIColor qw [ :constants color ]  ; $Term::ANSIColor::AUTORESET = 1 ; 
 #use Time::HiRes qw [ gettimeofday tv_interval ] ; my ${ dt_start } = [ gettimeofday ] ; 
 INIT { 
@@ -17,6 +17,8 @@ INIT {
 use List::Util qw [ min max ] ; 
 
 sub delColor ($) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # ASCIIエスケープシーケンスによる着色を消す。
+
+if ( 0 eq $o{C}//'' ) { while ( <> ) { print delColor $_ } ; exit } # -C0の指定で、単に色を取るというお節介な機能。
 
 #my $sdt = sprintf '%04d-%02d-%02d %02d:%02d:%02d', do{my @t= @{[localtime]}[5,4,3,2,1,0]; $t[0]+=1900; $t[1]++; @t } ; 
 
@@ -90,14 +92,17 @@ sub HELP_MESSAGE {
   -r : 右揃えにする。この指定が無いと、左揃えである。
   -s N : 出力の各セルにおいて、長すぎるセルを可能であれば埋めた空白をさらに幅何文字分(半角相当)まで縮めるか指定。
   -x : less に渡す引数(-xによるタブ位置の指定)のみを出力して終了。時には、とても便利。
+  -C0 : 単に入力の着色(ASCIIエスケープシーケンスによるもの)を取り除く。$0の主題と直接関係ないが、$0のテスト機能であり、おまけの機能でもある。
   -R0 : 通常Windows形式の改行文字であるCRLFはCFの部分を取り除く。しかし-R0指定でその処理をわざと行わない(通常時に利用は想定されていない, テスト目的などを想定)。
 
   --help : この $0 のヘルプメッセージを出す。  perldoc -t $0 | cat でもほぼ同じ。
   --help opt : オプションのみのヘルプを出す。opt以外でも options と先頭が1文字以上一致すれば良い。
 
   開発メモ: 
-   * 右揃えのオプションが欲しいかも。
-   * 行列として変数Cを参照するときに値が未定義の時にどうする。
+   * 行列として変数Cを参照するときに値が未定義の時にどうすれば良いか。
+   * INT{ALRM}を使って15秒ごとに、一旦出力する機能を付けたい。
+   * Ctrl+ZやCtrl+Cに対する機能を付けたい。
+   * -x による less の -xに渡す数の配列を STDERR に出力したい。その場合、2次情報の出力を抑制する -20も実装することになるであろう。
 
   Text::VisualWidth のインスートルがあらかじめ必要である。
 =cut
