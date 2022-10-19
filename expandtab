@@ -69,7 +69,7 @@ for my $r ( 0 .. $rcnt -1 ) {
 exit 0 ;
 
 sub demo () {
-  print $0 ; exit ;
+  #print $0 ; exit ;
   $o{D} //= '' ;
   use FindBin qw[ $Bin $Script ]; 
   if ( $o{D} eq 1 ) { 
