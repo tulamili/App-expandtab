@@ -1,20 +1,24 @@
 #!/usr/bin/perl
 
 #  expandtab
-#   2021-06-11
+#   2021-06-11(fri) , 2022-10-19(wed)
 
 use 5.014 ; 
 use strict ; 
 use warnings ; # also confirmed on 5.011 5.014 5.018  
-#use Encode qw[ decode_utf8 encode_utf8 ] ; 
 use FindBin qw [ $Script ] ; 
 use Getopt::Std ; getopts 'R:b:c:i:s:x' => \my %o ;
 use Term::ANSIColor qw [ :constants color ]  ; $Term::ANSIColor::AUTORESET = 1 ; 
 #use Time::HiRes qw [ gettimeofday tv_interval ] ; my ${ dt_start } = [ gettimeofday ] ; 
-use Text::VisualWidth::UTF8 qw[ trim width ] ;
+INIT { 
+  #no warnings ;
+  #*width = eval'use Text::VisualWidth::UTF8 qw[width];1'? *Text::VisualWidth::UTF8::width : sub{length $_[0]} ; 
+  *width = eval'use Text::VisualWidth::UTF8 qw[width];1'? *Text::VisualWidth::UTF8::width : sub{length $_[0]} ; 
+  #&& (*width=*Text::VisualWidth::UTF8::width)   #|| (*width=sub{length($_[0])}) 
+}  
 use List::Util qw [ min max ] ; 
 
-sub dc ($) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # Delete Color の頭文字を取った。
+sub delColor ($) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # ASCIIエスケープシーケンスによる着色を消す。
 
 #my $sdt = sprintf '%04d-%02d-%02d %02d:%02d:%02d', do{my @t= @{[localtime]}[5,4,3,2,1,0]; $t[0]+=1900; $t[1]++; @t } ; 
 
@@ -32,7 +36,8 @@ while ( <> ) {
   chomp ; 
   s/\r$//o unless $optR0 ; 
   $C [ $rcnt ] = [ my @F = split /$o{i}/, $_ , -1 ] ; 
-  $L [ $rcnt ] = [ map { Text::VisualWidth::UTF8::width dc $_ } @F ]  ; 
+  #$L [ $rcnt ] = [ map { Text::VisualWidth::UTF8::width delColor $_ } @F ]  ; 
+  $L [ $rcnt ] = [ map { width (delColor $_) } @F ]  ; 
 
   $cmax = @F if @F > $cmax ; 
   $rcnt ++ 

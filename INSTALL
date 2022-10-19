@@ -6,6 +6,6 @@ INSTALL memo for "App::expandtab" :
    cpanm -U App::expandtab # For uninstalling (;_;)
 
    
-Maybe you need to another module as follows : 
+Perhaps you need to another module as follows : 
 
-   cpanm Text::VisualWidth
+   cpanm Text::VisualWidth  # This may not be necessary. 
