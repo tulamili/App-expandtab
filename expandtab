@@ -7,20 +7,24 @@ use 5.014 ;
 use strict ; 
 use warnings ; # also confirmed on 5.011 5.014 5.018  
 use FindBin qw [ $Script ] ; 
-use Getopt::Std ; getopts 'C:R:b:c:i:rs:x' => \my %o ;
-use Term::ANSIColor qw [ :constants color ]  ; $Term::ANSIColor::AUTORESET = 1 ; 
-#use Time::HiRes qw [ gettimeofday tv_interval ] ; my ${ dt_start } = [ gettimeofday ] ; 
-INIT { 
-  no warnings ;
-  *width = eval'use Text::VisualWidth::UTF8 qw[width];1'? *Text::VisualWidth::UTF8::width : sub{length $_[0]} ; 
-}  
+use Getopt::Std ; getopts 'C:D:R:b:c:i:rs:x' => \my %o ;
 use List::Util qw [ min max ] ; 
+use Term::ANSIColor qw [ :constants color ]  ; $Term::ANSIColor::AUTORESET = 1 ; 
+#my $sdt = sprintf '%04d-%02d-%02d %02d:%02d:%02d', do{my @t= @{[localtime]}[5,4,3,2,1,0]; $t[0]+=1900; $t[1]++; @t } ; 
+#use Time::HiRes qw [ gettimeofday tv_interval ] ; my ${ dt_start } = [ gettimeofday ] ; 
+BEGIN { 
+  #no warnings ;
+  #*length = *Text::VisualWidth::UTF8::width if eval'use Text::VisualWidth::UTF8 qw[width];1' ; 
+  *width = eval'use Text::VisualWidth::UTF8 qw[width];1'? *Text::VisualWidth::UTF8::width : sub{length $_[0]} ; 
+  #my $t = 'Text::VisualWidth::UTF8' ; 
+  #say eval "$t" ;
+  #* length = eval "* $t::width" if eval"use $t qw[width]" ; #} ;  qw[width];1'? *Text::VisualWidth::UTF8::width : sub{length $_[0]} ; 
+}  
+
+& demo if exists $o{D} ; 
 
 sub delColor ($) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # ASCIIエスケープシーケンスによる着色を消す。
-
-if ( 0 eq $o{C}//'' ) { while ( <> ) { print delColor $_ } ; exit } # -C0の指定で、単に色を取るというお節介な機能。
-
-#my $sdt = sprintf '%04d-%02d-%02d %02d:%02d:%02d', do{my @t= @{[localtime]}[5,4,3,2,1,0]; $t[0]+=1900; $t[1]++; @t } ; 
+if ( 0 eq ($o{C}//'') ) { while ( <> ) { print delColor $_ } ; exit } # -C0の指定で、単に色を取るというお節介な機能。
 
 $o{b} //= ' ' ; # 間に埋める文字
 $o{c} //= ' ' ; # 列間で、列の直前に入れる文字
@@ -36,7 +40,7 @@ while ( <> ) {
   chomp ; 
   s/\r$//o unless $optR0 ; 
   $C [ $rcnt ] = [ my @F = split /$o{i}/, $_ , -1 ] ; 
-  $L [ $rcnt ] = [ map { width ( delColor $_ ) } @F ]  ; 
+  $L [ $rcnt ] = [ map { width ( delColor $_ ) } @F ]  ;  # <-- - length/width
   $cmax = @F if @F > $cmax ; # 列数の最大値
   $rcnt ++ 
 }
@@ -62,8 +66,29 @@ for my $r ( 0 .. $rcnt -1 ) {
   }
   say join $o{c} , @oneRow ; # $o{c} : 列間で、列の直前に入れる文字。未指定なら半角空白 ' '。(connector)
 }
-
 exit 0 ;
+
+sub demo () {
+  print $0 ; exit ;
+  $o{D} //= '' ;
+  use FindBin qw[ $Bin $Script ]; 
+  if ( $o{D} eq 1 ) { 
+    say YELLOW '>  ' , my $cmd = "$0" ;
+    open my $FH, '|-', "$Bin/$Script" ;
+    print {$FH} join "\n" , map { join "\t" , map { int exp rand(8)} 1..6 } 1..3 ; 
+  }
+  if ( $o{D} eq 2 ) { 
+    open my $FH, '|-' ,  "tr [0-9] あいうえおかきくけこ | $0 -c '|'";
+    print {$FH} join "\n" , map { join "\t" , map { int exp rand(12)} 1..6 } 1..3 ; 
+  }
+  if ( $o{D} eq 3 ) { 
+    say YELLOW '>　' , my $cmd = "$0 -c '|' -s9 " ; 
+    open my $FH, '|-' ,  "tr [0-9] あいうえおかきくけこ | $cmd ";
+    print {$FH} join "\n" , map { join "\t" , map { int exp rand(12)} 1..6 } 1..3 ; 
+  }
+  exit ;
+}
+
 
 ## ヘルプの扱い
 sub VERSION_MESSAGE {}
@@ -103,6 +128,7 @@ sub HELP_MESSAGE {
    * INT{ALRM}を使って15秒ごとに、一旦出力する機能を付けたい。
    * Ctrl+ZやCtrl+Cに対する機能を付けたい。
    * -x による less の -xに渡す数の配列を STDERR に出力したい。その場合、2次情報の出力を抑制する -20も実装することになるであろう。
+   * -rにおいて、特定の列だけ、または、特定の列以外を右寄せに出来ないだろうか?
 
   Text::VisualWidth のインスートルがあらかじめ必要である。
 =cut
