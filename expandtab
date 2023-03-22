@@ -85,6 +85,7 @@ sub demo () {
   }
   if ( $o{D} eq 4 ) { 
     #my $cmd = "perl -e ''" ; 
+
     open my $FH , '|-' , "$0 -c'|' -b. -f " ; 
     say {$FH} join "\t" , map { "$_"x(1+rand 3) } 1 .. $_ for 0..5 ;
   }
@@ -134,4 +135,9 @@ sub HELP_MESSAGE {
    * -x による less の -xに渡す数の配列を STDERR に出力したい。その場合、2次情報の出力を抑制する -20も実装することになるであろう。
    * -rにおいて、特定の列だけ、または、特定の列以外を右寄せに出来ないだろうか?
 
+<<<<<<< HEAD
+=======
+  Text::VisualWidth のインスートルがあらかじめ必要である。
+
+>>>>>>> 2ce37e4456311bbf10b7f2950ac1fb1d4255448b
 =cut
