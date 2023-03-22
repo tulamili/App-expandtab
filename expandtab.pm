@@ -1,6 +1,6 @@
 package App::expandtab ;  
-our $VERSION = '0.031' ; 
-our $DATE = '2022-10-19T23:47+09:00' ; 
+our $VERSION = '0.041' ; 
+our $DATE = '2023-03-22T18:37+09:00' ; 
 
 =encoding utf8
 
