@@ -33,25 +33,25 @@ $o{R} //= '' ;
 ## 値の読取り
 my @C ; # セルの値
 my @L ; # ビジュアルな長さ
-my $rcnt = 0 ; # 行番号
+my $row = 0 ; # 行番号
 my $cmax = 0 ; # 最大の列数
 while ( <> ) { 
   chomp ; 
   s/\r$//o unless $keep eq 'CRLF' ;
-  $C [ $rcnt ] = [ my @F = split /$o{i}/, $_ , -1 ] ; 
-  $L [ $rcnt ] = [ map { width ( delColor $_ ) } @F ]  ;  # <-- - length/width
+  $C [ $row ] = [ my @F = split /$o{i}/, $_ , -1 ] ; 
+  $L [ $row ] = [ map { width ( delColor $_ ) } @F ]  ;  # <-- - length/width
   $cmax = @F if @F > $cmax ; # 列数の最大値
-  $rcnt ++ 
+  $row ++ 
 }
 
 ## 各列において、Visual幅を算出する。 cmw は The Column's Max Width 
-my @cmw = map { my $c = $_ ; max map { $L[$_][$c] // 0 } 0 .. $rcnt - 1 }  0 .. $cmax - 1 ; 
+my @cmw = map { my $c = $_ ; max map { $L[$_][$c] // 0 } 0 .. $row - 1 }  0 .. $cmax - 1 ; 
 
 # -x の指定があれば、less に渡す引数(-xによるタブ位置の指定)のみを出力して、終了。
 if ( $o{x} ) { my $s = 0 ; say "-x",join "," , map {$s += $_ + 1 } @cmw ; exit } 
 
 ## 出力
-for my $r ( 0 .. $rcnt -1 ) { 
+for my $r ( 0 .. $row -1 ) { 
   my @oneRow ; # ひとつの各行に、どんな列値を出すかを格納。
   my $spaceSpare = 0 ; # 「柔軟な伸び縮み」をするための仕組みを導入している。
   for my $c ( 0 .. ( $o{f} ? $#cmw : $#{$C[$r]}) ) { 
@@ -121,7 +121,7 @@ sub HELP_MESSAGE {
   -c char ; 列間で、列の直前に入れる文字。未指定なら半角空白 ' ' 。例として　 -c "|" 。connectorのcのつもり。
   -f : ある行が列の数が少ないときに、最も列数の多い行に合わせて、列の数を増やす指定。
   -i delim : 区切り文字の変更。未指定なら、タブ文字。(出力は空白文字うめであり、変えない。)
-  -s N : 出力の各セルにおいて、長すぎるセルを可能であれば埋めた空白をさらに幅何文字分(半角相当)まで縮めるか指定。
+  -s N : (実験的)出力の各セルにおいて、長すぎるセルを可能であれば埋めた空白をさらに幅何文字分(半角相当)まで縮めるか指定。
   -x : less に渡す引数(-xによるタブ位置の指定)のみを出力して終了。時には、とても便利。
   -D num : このコマンドの動作についてのデモを表示して終了。numは1〜4。(開発上テストでも使う。)
 
