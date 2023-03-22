@@ -17,7 +17,9 @@ BEGIN {
 
 GetOptions delcolor => \my$delcolor ; # 単に色を消すだけの、おまけの機能。
 GetOptions right => \my$right ; # 右揃えにする指定。
-getopts 'C:D:R:b:c:fi:s:x' => \my %o ;
+GetOptions 'keep=s' => \my$keep ; # \r を入力から除去しない場合は, --keep CRLF と指定する。
+$keep //= '' ; 
+getopts 'C:D:b:c:fi:s:x' => \my %o ;
 & demo if exists $o{D} ; 
 
 sub delColor ( $ ) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # ASCIIエスケープシーケンスによる着色を消す。
@@ -35,7 +37,7 @@ my $rcnt = 0 ; # 行番号
 my $cmax = 0 ; # 最大の列数
 while ( <> ) { 
   chomp ; 
-  s/\r$//o unless $o{R} eq 0 ;
+  s/\r$//o unless $keep eq 'CRLF' ;
   $C [ $rcnt ] = [ my @F = split /$o{i}/, $_ , -1 ] ; 
   $L [ $rcnt ] = [ map { width ( delColor $_ ) } @F ]  ;  # <-- - length/width
   $cmax = @F if @F > $cmax ; # 列数の最大値
@@ -122,10 +124,10 @@ sub HELP_MESSAGE {
   -s N : 出力の各セルにおいて、長すぎるセルを可能であれば埋めた空白をさらに幅何文字分(半角相当)まで縮めるか指定。
   -x : less に渡す引数(-xによるタブ位置の指定)のみを出力して終了。時には、とても便利。
   -D num : このコマンドの動作についてのデモを表示して終了。numは1〜4。(開発上テストでも使う。)
-  -R0 : 通常Windows形式の改行文字であるCRLFはCFの部分を取り除く。しかし-R0指定でその処理をわざと行わない(通常時に利用は想定されていない, テスト目的などを想定)。
 
   --delcolor : 単に入力の着色(ASCIIエスケープシーケンスによるもの)を除去。テスト機能であり、おまけの機能である。
   --right : 右揃えにする。この指定が無いと、左揃えである。
+  --keep 'CRLF' : Windows形式だと改行文字が CR LF となるが、そのCRの部分を取り除く操作を、このオプション指定だと抑制する(テスト目的などを想定)。
 
 
   --help : この $0 のヘルプメッセージを出す。  perldoc -t $0 | cat でもほぼ同じ。
