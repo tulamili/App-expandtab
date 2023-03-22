@@ -10,7 +10,7 @@ use FindBin qw [ $Bin $Script ] ;
 use Getopt::Std ; 
 use Getopt::Long qw [ GetOptions :config bundling no_ignore_case pass_through ] ; 
 use Term::ANSIColor qw [ :constants color ]  ; $Term::ANSIColor::AUTORESET = 1 ; 
-use List::Util qw [ max ] ;
+use List::Util qw [ max min ] ;
 BEGIN { 
   *width = eval'use Text::VisualWidth::UTF8 qw[width];1'? *Text::VisualWidth::UTF8::width : sub{length $_[0]} ; 
 }  
@@ -19,7 +19,7 @@ GetOptions delcolor => \my$delcolor ; # 単に色を消すだけの、おまけ�
 GetOptions right => \my$right ; # 右揃えにする指定。
 GetOptions 'keep=s' => \my$keep ; # \r を入力から除去しない場合は, --keep CRLF と指定する。
 $keep //= '' ; 
-getopts 'C:D:b:c:fi:s:x' => \my %o ;
+getopts 'C:D:b:c:fi:r:s:x' => \my %o ;
 & demo if exists $o{D} ; 
 
 sub delColor ( $ ) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # ASCIIエスケープシーケンスによる着色を消す。
@@ -27,8 +27,8 @@ if ( $delcolor ) { while ( <> ) { print delColor $_ } ; exit } # -C0の指定で
 
 $o{b} //= ' ' ; # 間に埋める文字
 $o{c} //= ' ' ; # 列間で、列の直前に入れる文字
-$o{i} //= "\t" ; 
-$o{R} //= '' ; 
+$o{i} //= "\t" ; # 入力の区切り文字
+$o{r} //= 0    ; # 最も右側の列を何列について、文字幅の計算の対象外とするかの 値の指定
 
 ## 値の読取り
 my @C ; # セルの値
@@ -45,7 +45,10 @@ while ( <> ) {
 }
 
 ## 各列において、Visual幅を算出する。 cmw は The Column's Max Width 
-my @cmw = map { my $c = $_ ; max map { $L[$_][$c] // 0 } 0 .. $row - 1 }  0 .. $cmax - 1 ; 
+#my @Lr ; for ( 0 .. $#L ) { @{$Lr[$_]} = @{$L[$_]} ; say RED "@{$L[$_]}"; splice @{$Lr[$_]} , -$o{r} ; say BOLD RED  "@{$Lr[$_]}";  } ;
+my @Lr ; for ( 0 .. $#L ) { @{$Lr[$_]} = @{$L[$_]} ; splice @{$Lr[$_]} , - min ( $o{r} , scalar @{$Lr[$_]} ) } 
+my @cmw = map { my $c = $_ ; max map { $Lr[$_][$c] // 0 } 0 .. $row - 1 }  0 .. $cmax - 1 ; 
+#undef @Lr ; 
 
 # -x の指定があれば、less に渡す引数(-xによるタブ位置の指定)のみを出力して、終了。
 if ( $o{x} ) { my $s = 0 ; say "-x",join "," , map {$s += $_ + 1 } @cmw ; exit } 
@@ -121,6 +124,7 @@ sub HELP_MESSAGE {
   -c char ; 列間で、列の直前に入れる文字。未指定なら半角空白 ' ' 。例として　 -c "|" 。connectorのcのつもり。
   -f : ある行が列の数が少ないときに、最も列数の多い行に合わせて、列の数を増やす指定。
   -i delim : 区切り文字の変更。未指定なら、タブ文字。(出力は空白文字うめであり、変えない。)
+  -r N  : 最も右側の列を何列について、文字幅の計算の対象外とするかの 値の指定。未指定なら 0。
   -s N : (実験的)出力の各セルにおいて、長すぎるセルを可能であれば埋めた空白をさらに幅何文字分(半角相当)まで縮めるか指定。
   -x : less に渡す引数(-xによるタブ位置の指定)のみを出力して終了。時には、とても便利。
   -D num : このコマンドの動作についてのデモを表示して終了。numは1〜4。(開発上テストでも使う。)
