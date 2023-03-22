@@ -23,7 +23,7 @@ getopts 'C:D:b:c:fi:r:s:x' => \my %o ;
 & demo if exists $o{D} ; 
 
 sub delColor ( $ ) {  $_[0] =~ s{ \e\[ [\d;]* m }{}xmsgr }  # ASCIIエスケープシーケンスによる着色を消す。
-if ( $delcolor ) { while ( <> ) { print delColor $_ } ; exit } # -C0の指定で、単に色を取るというお節介な機能。
+if ( $delcolor ) { while ( <> ) { print delColor $_ } ; exit } # 単に色を取るというお節介な機能。下でも使う。
 
 $o{b} //= ' ' ; # 間に埋める文字
 $o{c} //= ' ' ; # 列間で、列の直前に入れる文字
